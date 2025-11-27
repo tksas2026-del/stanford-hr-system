@@ -1,0 +1,3767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stanford American School - HR System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --sidebar: #1e293b;
+            --sidebar-hover: #334155;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .logo {
+            margin-bottom: 30px;
+        }
+        .logo i {
+            font-size: 52px;
+            color: var(--primary);
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo h1 {
+            font-size: 28px;
+            color: var(--dark);
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+        .logo p {
+            color: var(--gray);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .form-group {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 14px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(37, 99, 235, 0.4);
+        }
+        .error-message {
+            color: var(--danger);
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            background: rgba(220, 38, 38, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid var(--danger);
+        }
+        .realtime-indicator {
+            background: linear-gradient(135deg, var(--success), #10b981);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3);
+        }
+        /* Main App Styles */
+        .main-app {
+            display: none;
+            width: 100%;
+            max-width: 1600px;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            height: 95vh;
+        }
+        .main-app.active {
+            display: block;
+        }
+        .topbar {
+            background: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        .online-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--success);
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .online-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .search-container {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .search-box {
+            padding: 12px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            width: 350px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+        .search-box:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .user-details {
+            text-align: right;
+        }
+        .user-name {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        .user-role {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #e2e8f0;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--gray);
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .logout-btn:hover {
+            background: var(--light);
+            color: var(--dark);
+            border-color: var(--primary);
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: calc(100vh - 80px);
+        }
+        .sidebar {
+            background: var(--sidebar);
+            color: white;
+            padding: 0;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            padding: 30px 25px 20px;
+            border-bottom: 1px solid #334155;
+        }
+        .online-users {
+            padding: 15px 25px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.05);
+            margin: 15px 20px;
+            border-radius: 10px;
+        }
+        .nav-links {
+            list-style: none;
+            padding: 0 15px;
+        }
+        .nav-links li {
+            margin-bottom: 8px;
+        }
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            background: var(--sidebar-hover);
+            color: white;
+            transform: translateX(5px);
+        }
+        .nav-links a i {
+            width: 20px;
+            text-align: center;
+            font-size: 18px;
+        }
+        .main-content {
+            padding: 30px;
+            background: #f1f5f9;
+            overflow-y: auto;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .welcome-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+        }
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .stat-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+        .stat-icon.teachers {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0.2));
+            color: var(--primary);
+        }
+        .stat-icon.admin {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(124, 58, 237, 0.2));
+            color: var(--secondary);
+        }
+        .stat-icon.departments {
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), rgba(5, 150, 105, 0.2));
+            color: var(--success);
+        }
+        .stat-icon.vacancies {
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.1), rgba(217, 119, 6, 0.2));
+            color: var(--warning);
+        }
+        .stat-info h3 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        .stat-info p {
+            color: var(--gray);
+            font-weight: 500;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .section-header h2 {
+            font-size: 28px;
+            color: var(--dark);
+            font-weight: 700;
+        }
+        .staff-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .staff-tab {
+            padding: 15px 30px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .staff-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        .staff-tab::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+        .staff-tab:hover::after {
+            width: 100%;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(37, 99, 235, 0.4);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #047857);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #b91c1c);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
+        }
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+        .table-container {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 18px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: var(--gray);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        tbody tr {
+            transition: background 0.3s;
+        }
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-active {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(5, 150, 105, 0.2);
+        }
+        .status-onleave {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(217, 119, 6, 0.2);
+        }
+        .status-resigned {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 14px;
+        }
+        .edit-btn {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+        }
+        .edit-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+        .delete-btn {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--danger);
+        }
+        .delete-btn:hover {
+            background: var(--danger);
+            color: white;
+            transform: scale(1.1);
+        }
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 700px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: scale(0.9) translateY(-20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            border-radius: 20px 20px 0 0;
+        }
+        .modal-header h3 {
+            font-size: 24px;
+            color: var(--dark);
+            font-weight: 700;
+        }
+        .modal-body {
+            padding: 30px;
+        }
+        .modal-footer {
+            padding: 25px 30px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            background: #f8fafc;
+            border-radius: 0 0 20px 20px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            border-left: 4px solid;
+        }
+        .alert-success {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success);
+            border-left-color: var(--success);
+        }
+        .alert-danger {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--danger);
+            border-left-color: var(--danger);
+        }
+        .activity-log {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+        .activity-item {
+            padding: 18px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+        .activity-item:hover {
+            background: #f8fafc;
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        /* Employee Photo */
+        .employee-photo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+        .employee-photo:hover {
+            transform: scale(1.1);
+            border-color: var(--primary);
+        }
+        .photo-upload {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+        .photo-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        /* Leave Management */
+        .leave-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+        .leave-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .leave-status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .leave-pending {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(217, 119, 6, 0.2);
+        }
+        .leave-approved {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(5, 150, 105, 0.2);
+        }
+        .leave-rejected {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+        /* Document Storage */
+        .document-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            border: 1px solid #e2e8f0;
+        }
+        .document-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .document-icon {
+            font-size: 28px;
+            color: var(--primary);
+            margin-right: 20px;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        /* Performance indicators */
+        .performance-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+        /* Settings Section */
+        .settings-section {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+        }
+        .settings-section h3 {
+            font-size: 20px;
+            color: var(--dark);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        /* Report Cards */
+        .report-card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: all 0.3s;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+        }
+        .report-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .report-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        /* Advanced Search Modal Styles */
+        .search-results-container {
+            max-height: 500px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        .search-stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary);
+        }
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            display: block;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .search-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .filter-btn:hover:not(.active) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .search-result-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .search-result-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: 0 8px 25px -5px rgba(37, 99, 235, 0.15);
+        }
+        .search-result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .employee-basic-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .employee-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #e2e8f0;
+        }
+        .employee-text-info h4 {
+            margin: 0 0 5px 0;
+            color: var(--dark);
+            font-size: 18px;
+        }
+        .employee-text-info p {
+            margin: 2px 0;
+            color: var(--gray);
+            font-size: 14px;
+        }
+        .employee-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: var(--gray);
+        }
+        .detail-value {
+            color: var(--dark);
+            text-align: right;
+        }
+        .search-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .export-section {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border-left: 4px solid var(--success);
+        }
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray);
+        }
+        .no-results i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+            color: #cbd5e1;
+        }
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .content {
+                grid-template-columns: 250px 1fr;
+            }
+            .search-box {
+                width: 250px;
+            }
+        }
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
+            .search-box {
+                width: 200px;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+            .search-stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .employee-details-grid {
+                grid-template-columns: 1fr;
+            }
+            .search-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <div class="logo">
+            <i class="fas fa-graduation-cap"></i>
+            <h1>Stanford American School</h1>
+            <p>HR Management System</p>
+        </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username"><i class="fas fa-user"></i> Username</label>
+                <input type="text" id="username" class="form-control" placeholder="Enter username" value="stanfordhr" required>
+            </div>
+            <div class="form-group">
+                <label for="password"><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter password" value="SAS2024!" required>
+            </div>
+            <div class="form-group">
+                <label for="userName"><i class="fas fa-id-card"></i> Your Full Name</label>
+                <input type="text" id="userName" class="form-control" placeholder="Enter your real name" required>
+                <small style="color: var(--gray); font-size: 12px;">This identifies you in the system</small>
+            </div>
+            <button type="submit" class="login-btn">
+                <i class="fas fa-sign-in-alt"></i> Login to HR System
+            </button>
+            <div class="error-message" id="errorMessage">
+                <i class="fas fa-exclamation-triangle"></i> Invalid credentials
+            </div>
+        </form>
+        <div class="realtime-indicator">
+            <i class="fas fa-bolt"></i> Real-time Multi-User System
+        </div>
+    </div>
+    <!-- Main Application -->
+    <div class="main-app" id="mainApp">
+        <div class="topbar">
+            <div class="online-status">
+                <span class="online-dot"></span>
+                <span id="onlineStatus">Connected</span>
+                <span id="onlineUsers">1 user online</span>
+            </div>
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-box" placeholder="Search by name, ID, department, position...">
+                <button class="btn btn-primary" id="searchBtn">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-details">
+                    <div class="user-name" id="userDisplayName">User</div>
+                    <div class="user-role">HR Administrator</div>
+                </div>
+                <button class="btn btn-secondary" id="settingsBtn">
+                    <i class="fas fa-cog"></i> Settings
+                </button>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h3 style="color: white; font-size: 20px; font-weight: 600;">HR Dashboard</h3>
+                </div>
+                <div class="online-users">
+                    <i class="fas fa-users"></i>
+                    <span id="sidebarOnlineCount">1</span> user online
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#" class="active" data-page="dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="#" data-page="staff"><i class="fas fa-users"></i> Staff Management</a></li>
+                    <li><a href="#" data-page="leave"><i class="fas fa-calendar-alt"></i> Leave Management</a></li>
+                    <li><a href="#" data-page="recruitment"><i class="fas fa-user-plus"></i> Recruitment</a></li>
+                    <li><a href="#" data-page="performance"><i class="fas fa-chart-line"></i> Performance Review</a></li>
+                    <li><a href="#" data-page="documents"><i class="fas fa-file-alt"></i> Documents</a></li>
+                    <li><a href="#" data-page="reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                    <li><a href="#" data-page="activity"><i class="fas fa-history"></i> Activity Log</a></li>
+                    <li><a href="#" data-page="settings"><i class="fas fa-cog"></i> System Settings</a></li>
+                </ul>
+            </div>
+            <div class="main-content">
+                <!-- Dashboard Page -->
+                <div class="page active" id="dashboard">
+                    <div class="welcome-banner">
+                        <h2 id="welcomeMessage">Welcome to Stanford HR System</h2>
+                        <p>Real-time Multi-User HR Management Portal</p>
+                    </div>
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <div class="stat-icon staff">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalStaff">0</h3>
+                                <p>Total Staff</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon leaves">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="pendingLeaves">0</h3>
+                                <p>Pending Leaves</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon approved">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="approvedLeaves">0</h3>
+                                <p>Approved Leaves</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon vacancies">
+                                <i class="fas fa-user-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="onLeaveNow">0</h3>
+                                <p>On Leave Now</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="recent-activity">
+                        <div class="section-header">
+                            <h2>Live Updates</h2>
+                            <button class="btn btn-primary" onclick="HRSystem.refreshAllData()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                        <div class="activity-log">
+                            <div id="liveUpdates">
+                                <div class="activity-item">
+                                    <span>System connected to real-time database</span>
+                                    <small>Just now</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Staff Management Page -->
+                <div class="page" id="staff">
+                    <div class="section-header">
+                        <h2>Staff Management</h2>
+                        <button class="btn btn-primary" id="addStaffBtn">
+                            <i class="fas fa-plus"></i> Add New Staff
+                        </button>
+                    </div>
+                    <div class="staff-tabs">
+                        <button class="staff-tab active" data-tab="active">Active Employees</button>
+                        <button class="staff-tab" data-tab="resigned">Resigned Employees</button>
+                    </div>
+                    <div id="staffAlert" class="alert" style="display: none;"></div>
+                    <!-- Active Employees Table -->
+                    <div class="table-container" id="activeEmployeesTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Photo</th>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Position</th>
+                                    <th>Department</th>
+                                    <th>Employment Date</th>
+                                    <th>Salary</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activeStaffTableBody">
+                                <!-- Active staff data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Resigned Employees Table -->
+                    <div class="table-container" id="resignedEmployeesTable" style="display: none;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Photo</th>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Position</th>
+                                    <th>Department</th>
+                                    <th>Employment Date</th>
+                                    <th>Resign Date</th>
+                                    <th>Final Salary</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resignedStaffTableBody">
+                                <!-- Resigned staff data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Leave Management Page -->
+                <div class="page" id="leave">
+                    <div class="section-header">
+                        <h2>Leave Management</h2>
+                        <button class="btn btn-primary" id="applyLeaveBtn">
+                            <i class="fas fa-plus"></i> Apply for Leave
+                        </button>
+                    </div>
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <div class="stat-icon leaves">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="pendingLeavesLeavePage">0</h3>
+                                <p>Pending Applications</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon approved">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="approvedLeavesLeavePage">0</h3>
+                                <p>Approved Leaves</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon vacancies">
+                                <i class="fas fa-user-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="onLeaveNowLeavePage">0</h3>
+                                <p>Currently On Leave</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="leaveList">
+                        <!-- Leave applications will be loaded here -->
+                    </div>
+                </div>
+                <!-- Recruitment Page -->
+                <div class="page" id="recruitment">
+                    <div class="section-header">
+                        <h2>Recruitment</h2>
+                        <button class="btn btn-primary" id="addRequisitionBtn">
+                            <i class="fas fa-plus"></i> New Requisition
+                        </button>
+                    </div>
+                    <div id="recruitmentAlert" class="alert" style="display: none;"></div>
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <div class="stat-icon staff">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="openRequisitions">0</h3>
+                                <p>Open Requisitions</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon approved">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="candidatesInProcess">0</h3>
+                                <p>Candidates in Process</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon vacancies">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="hiredThisMonth">0</h3>
+                                <p>Hired This Month</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="requisitionList">
+                        <!-- Recruitment requisitions will be loaded here -->
+                    </div>
+                </div>
+                <!-- Performance Review Page -->
+                <div class="page" id="performance">
+                    <div class="section-header">
+                        <h2>Performance Review</h2>
+                        <button class="btn btn-primary" id="addReviewBtn">
+                            <i class="fas fa-plus"></i> New Review
+                        </button>
+                    </div>
+                    <div id="performanceAlert" class="alert" style="display: none;"></div>
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <div class="stat-icon leaves">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="pendingReviews">0</h3>
+                                <p>Pending Reviews</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon approved">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="completedReviews">0</h3>
+                                <p>Completed Reviews</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon vacancies">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="avgRating">0.0</h3>
+                                <p>Average Rating</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="reviewList">
+                        <!-- Performance reviews will be loaded here -->
+                    </div>
+                </div>
+                <!-- Documents Page -->
+                <div class="page" id="documents">
+                    <div class="section-header">
+                        <h2>Document Storage</h2>
+                        <button class="btn btn-primary" id="uploadDocBtn">
+                            <i class="fas fa-upload"></i> Upload Document
+                        </button>
+                    </div>
+                    <div id="documentsAlert" class="alert" style="display: none;"></div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Document</th>
+                                    <th>Employee</th>
+                                    <th>Type</th>
+                                    <th>Upload Date</th>
+                                    <th>Size</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="documentsTableBody">
+                                <!-- Documents will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Reports Page -->
+                <div class="page" id="reports">
+                    <div class="section-header">
+                        <h2>Reports & Analytics</h2>
+                        <button class="btn btn-primary" onclick="HRSystem.generateExcelReport('all')">
+                            <i class="fas fa-download"></i> Export All Data
+                        </button>
+                    </div>
+                    <div class="stats-container">
+                        <div class="report-card" onclick="HRSystem.generateExcelReport('staff')">
+                            <div class="report-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3>Staff Directory</h3>
+                            <p>Complete employee list with details</p>
+                        </div>
+                        <div class="report-card" onclick="HRSystem.generateExcelReport('leaves')">
+                            <div class="report-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <h3>Leave Report</h3>
+                            <p>Leave application details</p>
+                        </div>
+                        <div class="report-card" onclick="HRSystem.generateExcelReport('recruitment')">
+                            <div class="report-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <h3>Recruitment Report</h3>
+                            <p>Recruitment details</p>
+                        </div>
+                        <div class="report-card" onclick="HRSystem.generateExcelReport('performance')">
+                            <div class="report-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3>Performance Report</h3>
+                            <p>Performance review details</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Activity Log Page -->
+                <div class="page" id="activity">
+                    <div class="section-header">
+                        <h2>Activity Log</h2>
+                        <button class="btn btn-secondary" id="clearActivityBtn">
+                            <i class="fas fa-trash"></i> Clear Log
+                        </button>
+                    </div>
+                    <div class="activity-log">
+                        <div id="activityFeed">
+                            <!-- Activity items will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+ <!-- Settings Page -->
+<div class="page" id="settings">
+    <div class="section-header">
+        <h2>System Settings</h2>
+    </div>
+    <div class="settings-section">
+        <h3><i class="fas fa-lock"></i> Change Password</h3>
+        <form id="passwordForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" class="form-control" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm New Password</label>
+                <input type="password" id="confirmPassword" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-key"></i> Change Password
+            </button>
+        </form>
+    </div>
+    <div class="settings-section">
+        <h3><i class="fas fa-database"></i> Data Management</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="HRSystem.exportAllData()" style="width: 100%;">
+                    <i class="fas fa-download"></i> Export All Data
+                </button>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-secondary" onclick="HRSystem.importData()" style="width: 100%;">
+                    <i class="fas fa-upload"></i> Import Data
+                </button>
+            </div>
+        </div>
+        <div class="form-group">
+            <button class="btn btn-danger" onclick="HRSystem.resetSystem()" style="width: 100%;">
+                <i class="fas fa-trash"></i> Reset System Data
+            </button>
+        </div>
+    </div>
+</div>
+    <!-- Add/Edit Staff Modal -->
+    <div class="modal" id="staffModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Staff Member</h3>
+                <button class="action-btn close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="staffForm">
+                    <div class="photo-upload">
+                        <img id="photoPreview" src="https://via.placeholder.com/120?text=Upload+Photo" class="photo-preview" alt="Photo Preview">
+                        <div>
+                            <label for="photoUpload" class="btn btn-primary">
+                                <i class="fas fa-camera"></i> Upload Photo
+                            </label>
+                            <input type="file" id="photoUpload" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="staffId">Staff ID *</label>
+                            <input type="text" id="staffId" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="employmentDate">Employment Date *</label>
+                            <input type="date" id="employmentDate" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name *</label>
+                            <input type="text" id="firstName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name *</label>
+                            <input type="text" id="lastName" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="position">Position *</label>
+                            <select id="position" class="form-control" required>
+                                <option value="">Select Position</option>
+                                <option value="Teacher">Teacher</option>
+                                <option value="Senior Teacher">Senior Teacher</option>
+                                <option value="Department Head">Department Head</option>
+                                <option value="Administrator">Administrator</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Executive">Executive</option>
+                                <option value="Officer">Officer</option>
+                                <option value="TA">TA</option>
+                                <option value="Customer Service">Customer Service</option>
+                                <option value="Cleaner">Cleaner</option>
+                                <option value="Security">Security</option>
+                                <option value="Support Staff">Support Staff</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="department">Department *</label>
+                            <select id="department" class="form-control" required>
+                                <option value="">Select Department</option>
+                                <option value="Academic-English">Academic-English</option>
+                                <option value="Academic-Chinese">Academic-Chinese</option>
+                                <option value="Academic-Khmer">Academic-Khmer</option>
+                                <option value="Academic-TA">Academic-TA</option>
+                                <option value="Operation">Operation</option>
+                                <option value="Administration">Administration</option>
+                                <option value="HR">HR</option>
+                                <option value="Finance">Finance</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone *</label>
+                            <input type="tel" id="phone" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="salary">Salary ($) *</label>
+                            <input type="number" id="salary" class="form-control" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="status">Employment Status *</label>
+                            <select id="status" class="form-control" required>
+                                <option value="Active">Active</option>
+                                <option value="On Leave">On Leave</option>
+                                <option value="Resigned">Resigned</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Address *</label>
+                        <textarea id="address" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="resign-section" id="resignSection" style="display: none;">
+                        <h4>Resignation Details</h4>
+                        <div class="form-group">
+                            <label for="resignDate">Resign Date</label>
+                            <input type="date" id="resignDate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="resignReason">Resign Reason</label>
+                            <textarea id="resignReason" class="form-control" rows="3" placeholder="Optional reason for resignation"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn btn-primary" id="saveStaffBtn">
+                    <i class="fas fa-save"></i> Save Staff Member
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Leave Application Modal -->
+    <div class="modal" id="leaveModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Apply for Leave</h3>
+                <button class="action-btn close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="leaveForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="leaveType">Leave Type *</label>
+                            <select id="leaveType" class="form-control" required>
+                                <option value="">Select Leave Type</option>
+                                <option value="Sick Leave">Sick Leave</option>
+                                <option value="Annual">Annual Leave</option>
+                                <option value="Personal">Personal Leave</option>
+                                <option value="Maternity">Maternity Leave</option>
+                                <option value="Paternity">Paternity Leave</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="leaveStaff">Staff Member *</label>
+                            <select id="leaveStaff" class="form-control" required>
+                                <option value="">Select Staff</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startDate">Start Date *</label>
+                            <input type="date" id="startDate" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endDate">End Date *</label>
+                            <input type="date" id="endDate" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="leaveReason">Reason for Leave *</label>
+                        <textarea id="leaveReason" class="form-control" rows="4" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn btn-primary" id="saveLeaveBtn">
+                    <i class="fas fa-paper-plane"></i> Submit Leave Application
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Recruitment Requisition Modal -->
+    <div class="modal" id="requisitionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="requisitionModalTitle">New Requisition</h3>
+                <button class="action-btn close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="requisitionForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reqTitle">Job Title *</label>
+                            <input type="text" id="reqTitle" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reqDepartment">Department *</label>
+                            <select id="reqDepartment" class="form-control" required>
+                                <option value="">Select Department</option>
+                                <option value="Academic-English">Academic-English</option>
+                                <option value="Academic-Chinese">Academic-Chinese</option>
+                                <option value="Academic-Khmer">Academic-Khmer</option>
+                                <option value="Academic-TA">Academic-TA</option>
+                                <option value="Operation">Operation</option>
+                                <option value="Administration">Administration</option>
+                                <option value="HR">HR</option>
+                                <option value="Finance">Finance</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reqStatus">Status *</label>
+                            <select id="reqStatus" class="form-control" required>
+                                <option value="Open">Open</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="reqPriority">Priority</label>
+                            <select id="reqPriority" class="form-control">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                                <option value="Urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="reqDescription">Job Description</label>
+                        <textarea id="reqDescription" class="form-control" rows="4" placeholder="Brief description of the role"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reqOpenings">Number of Openings</label>
+                            <input type="number" id="reqOpenings" class="form-control" min="1" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="reqRequirements">Requirements</label>
+                            <textarea id="reqRequirements" class="form-control" rows="3" placeholder="List key requirements"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="reqHiringManager">Hiring Manager</label>
+                        <select id="reqHiringManager" class="form-control">
+                            <option value="">Select Manager</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn btn-primary" id="saveRequisitionBtn">
+                    <i class="fas fa-save"></i> Save Requisition
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Performance Review Modal -->
+    <div class="modal" id="reviewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="reviewModalTitle">New Performance Review</h3>
+                <button class="action-btn close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="reviewForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reviewEmployee">Employee *</label>
+                            <select id="reviewEmployee" class="form-control" required>
+                                <option value="">Select Employee</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="reviewPeriod">Review Period *</label>
+                            <input type="month" id="reviewPeriod" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reviewType">Review Type *</label>
+                            <select id="reviewType" class="form-control" required>
+                                <option value="">Select Type</option>
+                                <option value="Annual">Annual Review</option>
+                                <option value="Mid-Year">Mid-Year Review</option>
+                                <option value="Probation">Probation Review</option>
+                                <option value="Promotion">Promotion Review</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="reviewer">Reviewer *</label>
+                            <select id="reviewer" class="form-control" required>
+                                <option value="">Select Reviewer</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="overallRating">Overall Rating *</label>
+                        <select id="overallRating" class="form-control" required>
+                            <option value="">Select Rating</option>
+                            <option value="1">1 - Unsatisfactory</option>
+                            <option value="2">2 - Needs Improvement</option>
+                            <option value="3">3 - Satisfactory</option>
+                            <option value="4">4 - Good</option>
+                            <option value="5">5 - Excellent</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reviewStatus">Status *</label>
+                            <select id="reviewStatus" class="form-control" required>
+                                <option value="Pending">Pending</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="reviewDate">Review Date</label>
+                            <input type="date" id="reviewDate" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="reviewComments">Comments</label>
+                        <textarea id="reviewComments" class="form-control" rows="4" placeholder="Additional comments about performance"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="developmentGoals">Development Goals</label>
+                        <textarea id="developmentGoals" class="form-control" rows="3" placeholder="Future development goals"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn btn-primary" id="saveReviewBtn">
+                    <i class="fas fa-save"></i> Save Review
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Document Upload Modal -->
+    <div class="modal" id="documentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Upload Document</h3>
+                <button class="action-btn close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="documentForm">
+                    <div class="form-group">
+                        <label for="documentFile">Select Document *</label>
+                        <input type="file" id="documentFile" class="form-control" required accept=".pdf,.doc,.docx,.jpg,.png">
+                    </div>
+                    <div class="form-group">
+                        <label for="documentStaff">Staff Member *</label>
+                        <select id="documentStaff" class="form-control" required>
+                            <option value="">Select Staff</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="documentType">Document Type *</label>
+                        <select id="documentType" class="form-control" required>
+                            <option value="">Select Type</option>
+                            <option value="Contract">Employment Contract</option>
+                            <option value="ID">ID Document</option>
+                            <option value="Certificate">Certificate</option>
+                            <option value="Performance">Performance Review</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="documentDescription">Description</label>
+                        <textarea id="documentDescription" class="form-control" rows="3" placeholder="Optional description"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn btn-primary" id="saveDocumentBtn">
+                    <i class="fas fa-upload"></i> Upload Document
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Advanced Search Results Modal -->
+    <div class="modal" id="searchResultsModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3>Advanced Employee Search</h3>
+                <button class="action-btn close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalResults">0</span>
+                        <span class="stat-label">Total Found</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="activeResults">0</span>
+                        <span class="stat-label">Active</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="resignedResults">0</span>
+                        <span class="stat-label">Resigned</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="onLeaveResults">0</span>
+                        <span class="stat-label">On Leave</span>
+                    </div>
+                </div>
+                <div class="search-filters">
+                    <button class="filter-btn active" data-filter="all">All Employees</button>
+                    <button class="filter-btn" data-filter="active">Active Only</button>
+                    <button class="filter-btn" data-filter="resigned">Resigned Only</button>
+                    <button class="filter-btn" data-filter="onleave">On Leave Only</button>
+                </div>
+                <div class="search-results-container" id="searchResultsContainer">
+                    <!-- Search results will be loaded here -->
+                </div>
+                <div class="export-section">
+                    <h4><i class="fas fa-download"></i> Export Results</h4>
+                    <p>Export the current search results to Excel for further analysis.</p>
+                    <button class="btn btn-success" id="exportSearchResults">
+                        <i class="fas fa-file-excel"></i> Export to Excel
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Close</button>
+            </div>
+        </div>
+    </div>
+    <!-- Performance Indicator -->
+    <div class="performance-indicator" id="performanceIndicator" style="display: none;">
+        <i class="fas fa-sync-alt fa-spin"></i> Saving...
+    </div>
+    <script>
+        // ENHANCED MULTI-USER HR SYSTEM
+        const HRSystem = {
+            // Data storage with better structure
+            data: {
+                staff: {},
+                activities: {},
+                leaves: {},
+                documents: {},
+                requisitions: {},
+                performanceReviews: {},
+                onlineUsers: {},
+                systemConfig: {
+                    password: "SAS2024!", // Default password
+                    username: "stanfordhr"
+                },
+                lastUpdate: Date.now()
+            },
+            currentUser: null,
+            currentEditId: null,
+            currentRequisitionId: null,
+            currentReviewId: null,
+            debounceTimer: null,
+            firebaseReady: false,
+            
+            // Initialize system
+            init() {
+                this.setupEventListeners();
+                // Check for existing session
+                const savedUser = localStorage.getItem('hr_currentUser');
+                if (savedUser) {
+                    try {
+                        this.currentUser = JSON.parse(savedUser);
+                        this.showMainApp();
+                    } catch (e) {
+                        console.error('Error parsing saved user:', e);
+                        localStorage.removeItem('hr_currentUser');
+                    }
+                }
+            },
+            
+            // Setup Firebase
+            setupFirebase() {
+                try {
+                    // Initialize Firebase
+                    const firebaseConfig = {
+                        apiKey: "YOUR_API_KEY",
+                        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+                        databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com/",
+                        projectId: "YOUR_PROJECT_ID",
+                        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+                        messagingSenderId: "123456789",
+                        appId: "YOUR_APP_ID"
+                    };
+                    
+                    // Initialize Firebase
+                    firebase.initializeApp(firebaseConfig);
+                    this.database = firebase.database();
+                    this.firebaseReady = true;
+                    
+                    // Load data from Firebase
+                    this.database.ref('hr_data').on('value', (snapshot) => {
+                        const firebaseData = snapshot.val();
+                        if (firebaseData) {
+                            this.data = {...this.data, ...firebaseData};
+                            // Update UI if already logged in
+                            if (this.currentUser) {
+                                this.refreshAllData();
+                            }
+                        } else {
+                            // First time setup - save initial data
+                            this.saveToFirebase();
+                        }
+                    });
+                } catch (error) {
+                    console.error('Firebase initialization error:', error);
+                    this.firebaseReady = false;
+                    // Fallback to local storage
+                    this.loadData();
+                }
+            },
+            
+            // Load data from localStorage (fallback)
+            loadData() {
+                try {
+                    const saved = localStorage.getItem('hr_system_data');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        this.data = {...this.data, ...parsed};
+                    }
+                } catch (e) {
+                    console.error('Error loading data:', e);
+                }
+            },
+            
+            // Save data to Firebase (primary) or localStorage (fallback)
+            saveData() {
+                if (this.debounceTimer) {
+                    clearTimeout(this.debounceTimer);
+                }
+                this.showSavingIndicator();
+                this.debounceTimer = setTimeout(() => {
+                    this.data.lastUpdate = Date.now();
+                    if (this.firebaseReady) {
+                        this.saveToFirebase();
+                    } else {
+                        this.saveToLocal();
+                    }
+                }, 500); // 500ms debounce
+            },
+            
+            saveToFirebase() {
+                if (!this.firebaseReady) return;
+                
+                try {
+                    this.database.ref('hr_data').set(this.data)
+                        .then(() => {
+                            console.log('Data saved to Firebase successfully');
+                            this.hideSavingIndicator();
+                        })
+                        .catch((error) => {
+                            console.error('Error saving to Firebase:', error);
+                            this.hideSavingIndicator();
+                            // Fallback to local storage
+                            this.saveToLocal();
+                        });
+                } catch (error) {
+                    console.error('Firebase save error:', error);
+                    this.hideSavingIndicator();
+                    this.saveToLocal();
+                }
+            },
+            
+            saveToLocal() {
+                try {
+                    localStorage.setItem('hr_system_data', JSON.stringify(this.data));
+                    console.log('Data saved to localStorage');
+                    this.hideSavingIndicator();
+                } catch (e) {
+                    console.error('Error saving to localStorage:', e);
+                    this.hideSavingIndicator();
+                    this.showAlert('Error saving data. Please check storage permissions.', 'danger');
+                }
+            },
+            
+            showSavingIndicator() {
+                const indicator = document.getElementById('performanceIndicator');
+                if (indicator) {
+                    indicator.style.display = 'flex';
+                }
+            },
+            
+            hideSavingIndicator() {
+                const indicator = document.getElementById('performanceIndicator');
+                if (indicator) {
+                    indicator.style.display = 'none';
+                }
+            },
+            
+            // Event listeners
+            setupEventListeners() {
+                // Login form
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleLogin();
+                });
+                
+                // Logout
+                document.getElementById('logoutBtn').addEventListener('click', () => {
+                    this.handleLogout();
+                });
+                
+                // Settings button
+                document.getElementById('settingsBtn').addEventListener('click', () => {
+                    this.showPage('settings');
+                    document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+                    document.querySelector('[data-page="settings"]').classList.add('active');
+                });
+                
+                // Navigation
+                document.querySelectorAll('.nav-links a').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.showPage(link.getAttribute('data-page'));
+                        document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+                        link.classList.add('active');
+                    });
+                });
+                
+                // Staff tabs
+                document.querySelectorAll('.staff-tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const tabType = tab.getAttribute('data-tab');
+                        document.querySelectorAll('.staff-tab').forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        if (tabType === 'active') {
+                            document.getElementById('activeEmployeesTable').style.display = 'block';
+                            document.getElementById('resignedEmployeesTable').style.display = 'none';
+                        } else {
+                            document.getElementById('activeEmployeesTable').style.display = 'none';
+                            document.getElementById('resignedEmployeesTable').style.display = 'block';
+                        }
+                    });
+                });
+                
+                // Add staff button
+                document.getElementById('addStaffBtn').addEventListener('click', () => {
+                    this.openStaffModal();
+                });
+                
+                // Save staff button
+                document.getElementById('saveStaffBtn').addEventListener('click', () => {
+                    this.saveStaff();
+                });
+                
+                // Apply leave button
+                document.getElementById('applyLeaveBtn').addEventListener('click', () => {
+                    this.openLeaveModal();
+                });
+                
+                // Save leave button
+                document.getElementById('saveLeaveBtn').addEventListener('click', () => {
+                    this.saveLeave();
+                });
+                
+                // Recruitment buttons
+                document.getElementById('addRequisitionBtn').addEventListener('click', () => {
+                    this.openRequisitionModal();
+                });
+                
+                document.getElementById('saveRequisitionBtn').addEventListener('click', () => {
+                    this.saveRequisition();
+                });
+                
+                // Performance Review buttons
+                document.getElementById('addReviewBtn').addEventListener('click', () => {
+                    this.openReviewModal();
+                });
+                
+                document.getElementById('saveReviewBtn').addEventListener('click', () => {
+                    this.saveReview();
+                });
+                
+                // Upload document button
+                document.getElementById('uploadDocBtn').addEventListener('click', () => {
+                    this.openDocumentModal();
+                });
+                
+                // Save document button
+                document.getElementById('saveDocumentBtn').addEventListener('click', () => {
+                    this.saveDocument();
+                });
+                
+                // Photo upload
+                document.getElementById('photoUpload').addEventListener('change', (e) => {
+                    this.handlePhotoUpload(e);
+                });
+                
+                // Status change
+                document.getElementById('status').addEventListener('change', (e) => {
+                    document.getElementById('resignSection').style.display = 
+                        e.target.value === 'Resigned' ? 'block' : 'none';
+                });
+                
+                // Modal close buttons
+                document.querySelectorAll('.close-modal').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.closeAllModals();
+                    });
+                });
+                
+                // Search
+                document.getElementById('searchBtn').addEventListener('click', () => {
+                    this.searchStaff();
+                });
+                
+                // Clear activity log
+                document.getElementById('clearActivityBtn').addEventListener('click', () => {
+                    this.clearActivityLog();
+                });
+                
+                // Close modals on background click
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            this.closeAllModals();
+                        }
+                    });
+                });
+                
+                // Password change form
+                document.getElementById('passwordForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.changePassword();
+                });
+                
+                // Export search results
+                document.getElementById('exportSearchResults').addEventListener('click', () => {
+                    this.exportSearchResults();
+                });
+            },
+            
+            closeAllModals() {
+                document.getElementById('staffModal').classList.remove('active');
+                document.getElementById('leaveModal').classList.remove('active');
+                document.getElementById('requisitionModal').classList.remove('active');
+                document.getElementById('reviewModal').classList.remove('active');
+                document.getElementById('documentModal').classList.remove('active');
+                document.getElementById('searchResultsModal').classList.remove('active');
+                
+                // Reset forms
+                document.getElementById('staffForm')?.reset();
+                document.getElementById('leaveForm')?.reset();
+                document.getElementById('requisitionForm')?.reset();
+                document.getElementById('reviewForm')?.reset();
+                document.getElementById('documentForm')?.reset();
+                document.getElementById('photoPreview').src = 'https://via.placeholder.com/120?text=Upload+Photo';
+                document.getElementById('resignSection').style.display = 'none';
+            },
+            
+            // Authentication
+            handleLogin() {
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+                const userName = document.getElementById('userName').value.trim();
+                
+                if (username === this.data.systemConfig.username && password === this.data.systemConfig.password) {
+                    this.currentUser = {
+                        name: userName,
+                        id: 'user_' + Date.now(),
+                        loginTime: new Date().toISOString()
+                    };
+                    localStorage.setItem('hr_currentUser', JSON.stringify(this.currentUser));
+                    this.showMainApp();
+                    this.updateOnlineStatus();
+                    this.logActivity(`${userName} logged into the system`);
+                    document.getElementById('errorMessage').style.display = 'none';
+                } else {
+                    document.getElementById('errorMessage').style.display = 'block';
+                }
+            },
+            
+            handleLogout() {
+                if (this.currentUser) {
+                    this.logActivity(`${this.currentUser.name} logged out of the system`);
+                }
+                
+                // Remove user from online status
+                if (this.firebaseReady && this.currentUser) {
+                    this.database.ref(`hr_data/onlineUsers/${this.currentUser.id}`).remove();
+                }
+                
+                localStorage.removeItem('hr_currentUser');
+                this.currentUser = null;
+                document.getElementById('loginScreen').style.display = 'block';
+                document.getElementById('mainApp').classList.remove('active');
+                document.getElementById('loginForm').reset();
+                // Reset to dashboard page when logging out
+                this.showPage('dashboard');
+                document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+                document.querySelector('[data-page="dashboard"]').classList.add('active');
+            },
+            
+            // Password change functionality
+            changePassword() {
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                if (currentPassword !== this.data.systemConfig.password) {
+                    this.showAlert('Current password is incorrect', 'danger');
+                    return;
+                }
+                
+                if (newPassword !== confirmPassword) {
+                    this.showAlert('New passwords do not match', 'danger');
+                    return;
+                }
+                
+                if (newPassword.length < 6) {
+                    this.showAlert('New password must be at least 6 characters long', 'danger');
+                    return;
+                }
+                
+                this.data.systemConfig.password = newPassword;
+                this.saveData();
+                this.showAlert('Password changed successfully!', 'success');
+                this.logActivity(`${this.currentUser.name} changed the system password`);
+                document.getElementById('passwordForm').reset();
+            },
+            
+            // Online status - Fixed to only show current user
+            updateOnlineStatus() {
+                if (this.currentUser) {
+                    // Clear all online users and only add current user
+                    this.data.onlineUsers = {
+                        [this.currentUser.id]: {
+                            name: this.currentUser.name,
+                            lastActive: new Date().toISOString()
+                        }
+                    };
+                    this.saveData();
+                    // Always show 1 user online (current user only)
+                    document.getElementById('onlineUsers').textContent = '1 user online';
+                    document.getElementById('sidebarOnlineCount').textContent = '1';
+                }
+            },
+            
+            // UI Management
+            showMainApp() {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').classList.add('active');
+                document.getElementById('userDisplayName').textContent = this.currentUser.name;
+                document.getElementById('welcomeMessage').textContent = `Welcome, ${this.currentUser.name}!`;
+                document.getElementById('userAvatar').textContent = this.currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                // Always start on dashboard when logging in
+                this.showPage('dashboard');
+                document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+                document.querySelector('[data-page="dashboard"]').classList.add('active');
+                this.refreshAllData();
+            },
+            
+            showPage(page) {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById(page).classList.add('active');
+                // Use requestAnimationFrame for smooth transitions
+                requestAnimationFrame(() => {
+                    if (page === 'staff') {
+                        this.loadStaffData();
+                    } else if (page === 'leave') {
+                        this.loadLeavesData();
+                    } else if (page === 'documents') {
+                        this.loadDocumentsData();
+                    } else if (page === 'recruitment') {
+                        this.loadRequisitionData();
+                    } else if (page === 'performance') {
+                        this.loadReviewData();
+                    } else if (page === 'activity') {
+                        this.loadActivityData();
+                    } else if (page === 'dashboard') {
+                        this.updateDashboard();
+                    }
+                });
+            },
+            
+            refreshAllData() {
+                this.loadStaffData();
+                this.loadLeavesData();
+                this.loadRequisitionData();
+                this.loadReviewData();
+                this.loadDocumentsData();
+                this.loadActivityData();
+                this.updateDashboard();
+            },
+            
+            // Staff Management
+            loadStaffData() {
+                const activeTableBody = document.getElementById('activeStaffTableBody');
+                const resignedTableBody = document.getElementById('resignedStaffTableBody');
+                // Use document fragment for batch DOM updates
+                const activeFragment = document.createDocumentFragment();
+                const resignedFragment = document.createDocumentFragment();
+                const staffArray = Object.values(this.data.staff || {});
+                const activeStaff = staffArray.filter(staff => staff.status !== 'Resigned');
+                const resignedStaff = staffArray.filter(staff => staff.status === 'Resigned');
+                
+                // Active staff
+                if (activeStaff.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="9" style="text-align: center; padding: 40px; color: var(--gray);">
+                            <i class="fas fa-users" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                            No active staff members found.
+                        </td>
+                    `;
+                    activeFragment.appendChild(row);
+                } else {
+                    activeStaff.forEach(staff => {
+                        const statusClass = staff.status === 'On Leave' ? 'status-onleave' : 'status-active';
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><img src="${staff.photo || 'https://via.placeholder.com/50?text=No+Photo'}" class="employee-photo" alt="${staff.name}"></td>
+                            <td>${staff.id}</td>
+                            <td>${staff.name}</td>
+                            <td>${staff.position}</td>
+                            <td>${staff.department}</td>
+                            <td>${this.formatDate(staff.employmentDate)}</td>
+                            <td>$${staff.salary.toLocaleString()}</td>
+                            <td><span class="status-badge ${statusClass}">${staff.status}</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn edit-btn" onclick="HRSystem.editStaff('${staff.id}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn" onclick="HRSystem.deleteStaff('${staff.id}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        activeFragment.appendChild(row);
+                    });
+                }
+                
+                // Resigned staff
+                if (resignedStaff.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="9" style="text-align: center; padding: 40px; color: var(--gray);">
+                            No resigned staff members found.
+                        </td>
+                    `;
+                    resignedFragment.appendChild(row);
+                } else {
+                    resignedStaff.forEach(staff => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><img src="${staff.photo || 'https://via.placeholder.com/50?text=No+Photo'}" class="employee-photo" alt="${staff.name}"></td>
+                            <td>${staff.id}</td>
+                            <td>${staff.name}</td>
+                            <td>${staff.position}</td>
+                            <td>${staff.department}</td>
+                            <td>${this.formatDate(staff.employmentDate)}</td>
+                            <td>${staff.resignDate ? this.formatDate(staff.resignDate) : 'N/A'}</td>
+                            <td>$${staff.salary.toLocaleString()}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn edit-btn" onclick="HRSystem.editStaff('${staff.id}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn" onclick="HRSystem.deleteStaff('${staff.id}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        resignedFragment.appendChild(row);
+                    });
+                }
+                
+                // Batch update DOM
+                activeTableBody.innerHTML = '';
+                activeTableBody.appendChild(activeFragment);
+                resignedTableBody.innerHTML = '';
+                resignedTableBody.appendChild(resignedFragment);
+            },
+            
+            openStaffModal(staffId = null) {
+                this.currentEditId = staffId;
+                document.getElementById('modalTitle').textContent = staffId ? 'Edit Staff Member' : 'Add New Staff Member';
+                document.getElementById('staffForm').reset();
+                document.getElementById('photoPreview').src = 'https://via.placeholder.com/120?text=Upload+Photo';
+                document.getElementById('resignSection').style.display = 'none';
+                document.getElementById('staffId').readOnly = !!staffId;
+                
+                // Set default employment date to today
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('employmentDate').value = today;
+                
+                if (staffId) {
+                    const staff = this.data.staff[staffId];
+                    if (staff) {
+                        document.getElementById('staffId').value = staff.id;
+                        const nameParts = staff.name.split(' ');
+                        document.getElementById('firstName').value = nameParts[0] || '';
+                        document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
+                        document.getElementById('position').value = staff.position;
+                        document.getElementById('department').value = staff.department;
+                        document.getElementById('email').value = staff.email;
+                        document.getElementById('phone').value = staff.phone;
+                        document.getElementById('salary').value = staff.salary;
+                        document.getElementById('status').value = staff.status;
+                        document.getElementById('employmentDate').value = staff.employmentDate;
+                        document.getElementById('address').value = staff.address || '';
+                        document.getElementById('photoPreview').src = staff.photo || 'https://via.placeholder.com/120?text=Upload+Photo';
+                        if (staff.status === 'Resigned') {
+                            document.getElementById('resignSection').style.display = 'block';
+                            document.getElementById('resignDate').value = staff.resignDate || '';
+                            document.getElementById('resignReason').value = staff.resignReason || '';
+                        }
+                    }
+                }
+                
+                document.getElementById('staffModal').classList.add('active');
+            },
+            
+            saveStaff() {
+                const staffId = document.getElementById('staffId').value.trim();
+                const firstName = document.getElementById('firstName').value.trim();
+                const lastName = document.getElementById('lastName').value.trim();
+                
+                if (!staffId || !firstName || !lastName) {
+                    this.showAlert('Please fill in all required fields', 'danger');
+                    return;
+                }
+                
+                // Check for duplicate ID when adding new staff
+                if (!this.currentEditId && this.data.staff[staffId]) {
+                    this.showAlert('Staff ID already exists! Please use a different ID.', 'danger');
+                    return;
+                }
+                
+                const staffData = {
+                    id: staffId,
+                    name: `${firstName} ${lastName}`,
+                    position: document.getElementById('position').value,
+                    department: document.getElementById('department').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    salary: parseInt(document.getElementById('salary').value) || 0,
+                    status: document.getElementById('status').value,
+                    employmentDate: document.getElementById('employmentDate').value,
+                    address: document.getElementById('address').value.trim(),
+                    photo: document.getElementById('photoPreview').src
+                };
+                
+                if (staffData.status === 'Resigned') {
+                    staffData.resignDate = document.getElementById('resignDate').value;
+                    staffData.resignReason = document.getElementById('resignReason').value;
+                }
+                
+                // Show loading state
+                const saveBtn = document.getElementById('saveStaffBtn');
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                saveBtn.disabled = true;
+                
+                // Use setTimeout to allow UI update before saving
+                setTimeout(() => {
+                    const finalStaffId = this.currentEditId || staffId;
+                    this.data.staff[finalStaffId] = staffData;
+                    this.saveData();
+                    this.showAlert(`Staff member ${this.currentEditId ? 'updated' : 'added'} successfully!`, 'success');
+                    this.logActivity(`${this.currentUser.name} ${this.currentEditId ? 'updated' : 'added'} staff member ${staffData.name}`);
+                    document.getElementById('staffModal').classList.remove('active');
+                    // Reset button and state
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+                    this.currentEditId = null;
+                    // Refresh data
+                    this.loadStaffData();
+                    this.updateDashboard();
+                }, 10);
+            },
+            
+            editStaff(staffId) {
+                this.openStaffModal(staffId);
+            },
+            
+            deleteStaff(staffId) {
+                if (confirm('Are you sure you want to delete this staff member? This action cannot be undone.')) {
+                    delete this.data.staff[staffId];
+                    this.saveData();
+                    this.showAlert('Staff member deleted successfully!', 'success');
+                    this.logActivity(`${this.currentUser.name} deleted staff member ${staffId}`);
+                    this.loadStaffData();
+                    this.updateDashboard();
+                }
+            },
+            
+            // Recruitment Management
+            loadRequisitionData() {
+                const container = document.getElementById('requisitionList');
+                container.innerHTML = '';
+                
+                const reqs = Object.values(this.data.requisitions || {});
+                if (reqs.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--gray);">
+                            <i class="fas fa-user-plus" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                            No recruitment requisitions found.
+                        </div>
+                    `;
+                    return;
+                }
+                
+                reqs.forEach(req => {
+                    const statusClass = req.status === 'Open' ? 'requisition-open' : 'requisition-closed';
+                    const card = document.createElement('div');
+                    card.className = 'requisition-card';
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h4>${req.title} <span class="requisition-status ${statusClass}">${req.status}</span></h4>
+                                <p><strong>Department:</strong> ${req.department}</p>
+                                <p><strong>Openings:</strong> ${req.openings || 1} | <strong>Priority:</strong> ${req.priority || 'Medium'}</p>
+                                <p><strong>Description:</strong> ${req.description || 'N/A'}</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="margin-top: 10px;">
+                                    <button class="btn btn-secondary" onclick="HRSystem.editRequisition('${req.id}')">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-danger" onclick="HRSystem.deleteRequisition('${req.id}')" style="margin-left: 5px;">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+                
+                // Update stats
+                const open = reqs.filter(r => r.status === 'Open').length;
+                const candidates = reqs.filter(r => r.status === 'Open').reduce((sum, r) => sum + (r.candidateCount || 0), 0);
+                const hiredThisMonth = Object.values(this.data.staff || {}).filter(s => 
+                    s.employmentDate && new Date(s.employmentDate).getMonth() === new Date().getMonth() &&
+                    new Date(s.employmentDate).getFullYear() === new Date().getFullYear()
+                ).length;
+                
+                document.getElementById('openRequisitions').textContent = open;
+                document.getElementById('candidatesInProcess').textContent = candidates;
+                document.getElementById('hiredThisMonth').textContent = hiredThisMonth;
+            },
+            
+            openRequisitionModal(requisitionId = null) {
+                this.currentRequisitionId = requisitionId;
+                document.getElementById('requisitionModalTitle').textContent = requisitionId ? 'Edit Requisition' : 'New Requisition';
+                document.getElementById('requisitionForm').reset();
+                
+                // Set default values
+                document.getElementById('reqPriority').value = 'Medium';
+                document.getElementById('reqStatus').value = 'Open';
+                document.getElementById('reqOpenings').value = 1;
+                
+                // Populate hiring manager dropdown
+                const managerSelect = document.getElementById('reqHiringManager');
+                managerSelect.innerHTML = '<option value="">Select Manager</option>';
+                Object.values(this.data.staff || {}).forEach(staff => {
+                    if (staff.status !== 'Resigned') {
+                        const option = document.createElement('option');
+                        option.value = staff.id;
+                        option.textContent = staff.name;
+                        managerSelect.appendChild(option);
+                    }
+                });
+                
+                if (requisitionId) {
+                    const req = this.data.requisitions[requisitionId];
+                    if (req) {
+                        document.getElementById('reqTitle').value = req.title;
+                        document.getElementById('reqDepartment').value = req.department;
+                        document.getElementById('reqStatus').value = req.status;
+                        document.getElementById('reqPriority').value = req.priority || 'Medium';
+                        document.getElementById('reqDescription').value = req.description || '';
+                        document.getElementById('reqOpenings').value = req.openings || 1;
+                        document.getElementById('reqRequirements').value = req.requirements || '';
+                        document.getElementById('reqHiringManager').value = req.hiringManager || '';
+                    }
+                }
+                
+                document.getElementById('requisitionModal').classList.add('active');
+            },
+            
+            saveRequisition() {
+                const title = document.getElementById('reqTitle').value.trim();
+                const department = document.getElementById('reqDepartment').value;
+                const status = document.getElementById('reqStatus').value;
+                
+                if (!title || !department) {
+                    this.showAlert('Please fill in required fields (Title, Department)', 'danger');
+                    return;
+                }
+                
+                const requisitionData = {
+                    id: this.currentRequisitionId || ('req_' + Date.now()),
+                    title: title,
+                    department: department,
+                    status: status,
+                    priority: document.getElementById('reqPriority').value,
+                    description: document.getElementById('reqDescription').value.trim(),
+                    requirements: document.getElementById('reqRequirements').value.trim(),
+                    openings: parseInt(document.getElementById('reqOpenings').value) || 1,
+                    hiringManager: document.getElementById('reqHiringManager').value || null,
+                    createdDate: this.currentRequisitionId ? this.data.requisitions[this.currentRequisitionId].createdDate : new Date().toISOString(),
+                    updatedDate: new Date().toISOString()
+                };
+                
+                // Show loading state
+                const saveBtn = document.getElementById('saveRequisitionBtn');
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                saveBtn.disabled = true;
+                
+                setTimeout(() => {
+                    this.data.requisitions[requisitionData.id] = requisitionData;
+                    this.saveData();
+                    this.showAlert(`Requisition ${this.currentRequisitionId ? 'updated' : 'created'} successfully!`, 'success');
+                    this.logActivity(`${this.currentUser.name} ${this.currentRequisitionId ? 'updated' : 'created'} requisition ${title}`);
+                    document.getElementById('requisitionModal').classList.remove('active');
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+                    this.currentRequisitionId = null;
+                    this.loadRequisitionData();
+                }, 10);
+            },
+            
+            editRequisition(requisitionId) {
+                this.openRequisitionModal(requisitionId);
+            },
+            
+            deleteRequisition(requisitionId) {
+                if (confirm('Are you sure you want to delete this requisition?')) {
+                    delete this.data.requisitions[requisitionId];
+                    this.saveData();
+                    this.showAlert('Requisition deleted successfully!', 'success');
+                    this.logActivity(`${this.currentUser.name} deleted requisition ${requisitionId}`);
+                    this.loadRequisitionData();
+                }
+            },
+            
+            // Performance Review Management
+            loadReviewData() {
+                const container = document.getElementById('reviewList');
+                container.innerHTML = '';
+                
+                const reviews = Object.values(this.data.performanceReviews || {});
+                if (reviews.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--gray);">
+                            <i class="fas fa-chart-line" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                            No performance reviews found.
+                        </div>
+                    `;
+                    return;
+                }
+                
+                reviews.forEach(review => {
+                    const statusClass = review.status === 'Completed' ? 'review-completed' : 'review-pending';
+                    const employee = this.data.staff[review.employeeId] || { name: 'Unknown Employee' };
+                    const reviewer = this.data.staff[review.reviewerId] || { name: 'Unknown Reviewer' };
+                    const card = document.createElement('div');
+                    card.className = 'review-card';
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h4>${employee.name} <span class="review-status ${statusClass}">${review.status}</span></h4>
+                                <p><strong>Period:</strong> ${this.formatMonthYear(review.period)}</p>
+                                <p><strong>Type:</strong> ${review.type}</p>
+                                <p><strong>Reviewer:</strong> ${reviewer.name}</p>
+                                <p><strong>Rating:</strong> ${review.overallRating}/5 - ${review.comments || 'N/A'}</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="margin-top: 10px;">
+                                    <button class="btn btn-secondary" onclick="HRSystem.editReview('${review.id}')">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-danger" onclick="HRSystem.deleteReview('${review.id}')" style="margin-left: 5px;">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+                
+                // Update stats
+                const pending = reviews.filter(r => r.status === 'Pending').length;
+                const completed = reviews.filter(r => r.status === 'Completed').length;
+                const totalRatings = reviews.reduce((sum, r) => sum + (r.overallRating || 0), 0);
+                const avgRating = reviews.length > 0 ? (totalRatings / reviews.length).toFixed(1) : '0.0';
+                
+                document.getElementById('pendingReviews').textContent = pending;
+                document.getElementById('completedReviews').textContent = completed;
+                document.getElementById('avgRating').textContent = avgRating;
+            },
+            
+            openReviewModal(reviewId = null) {
+                this.currentReviewId = reviewId;
+                document.getElementById('reviewModalTitle').textContent = reviewId ? 'Edit Performance Review' : 'New Performance Review';
+                document.getElementById('reviewForm').reset();
+                
+                // Set default values
+                document.getElementById('reviewStatus').value = 'Pending';
+                document.getElementById('reviewDate').value = new Date().toISOString().split('T')[0];
+                
+                // Populate employee dropdown
+                const employeeSelect = document.getElementById('reviewEmployee');
+                employeeSelect.innerHTML = '<option value="">Select Employee</option>';
+                Object.values(this.data.staff || {}).forEach(staff => {
+                    if (staff.status === 'Active') {
+                        const option = document.createElement('option');
+                        option.value = staff.id;
+                        option.textContent = staff.name;
+                        employeeSelect.appendChild(option);
+                    }
+                });
+                
+                // Populate reviewer dropdown
+                const reviewerSelect = document.getElementById('reviewer');
+                reviewerSelect.innerHTML = '<option value="">Select Reviewer</option>';
+                Object.values(this.data.staff || {}).forEach(staff => {
+                    if (staff.status !== 'Resigned') {
+                        const option = document.createElement('option');
+                        option.value = staff.id;
+                        option.textContent = staff.name;
+                        reviewerSelect.appendChild(option);
+                    }
+                });
+                
+                if (reviewId) {
+                    const review = this.data.performanceReviews[reviewId];
+                    if (review) {
+                        document.getElementById('reviewEmployee').value = review.employeeId;
+                        document.getElementById('reviewPeriod').value = review.period;
+                        document.getElementById('reviewType').value = review.type;
+                        document.getElementById('reviewer').value = review.reviewerId;
+                        document.getElementById('overallRating').value = review.overallRating;
+                        document.getElementById('reviewStatus').value = review.status;
+                        document.getElementById('reviewDate').value = review.reviewDate ? review.reviewDate.split('T')[0] : '';
+                        document.getElementById('reviewComments').value = review.comments || '';
+                        document.getElementById('developmentGoals').value = review.developmentGoals || '';
+                    }
+                }
+                
+                document.getElementById('reviewModal').classList.add('active');
+            },
+            
+            saveReview() {
+                const employeeId = document.getElementById('reviewEmployee').value;
+                const period = document.getElementById('reviewPeriod').value;
+                const type = document.getElementById('reviewType').value;
+                const reviewerId = document.getElementById('reviewer').value;
+                const rating = document.getElementById('overallRating').value;
+                const status = document.getElementById('reviewStatus').value;
+                
+                if (!employeeId || !period || !type || !reviewerId || !rating || !status) {
+                    this.showAlert('Please fill in all required fields', 'danger');
+                    return;
+                }
+                
+                const employee = this.data.staff[employeeId];
+                const reviewer = this.data.staff[reviewerId];
+                if (!employee || !reviewer) {
+                    this.showAlert('Selected employee or reviewer not found', 'danger');
+                    return;
+                }
+                
+                const reviewData = {
+                    id: this.currentReviewId || ('review_' + Date.now()),
+                    employeeId: employeeId,
+                    employeeName: employee.name,
+                    period: period,
+                    type: type,
+                    reviewerId: reviewerId,
+                    reviewerName: reviewer.name,
+                    overallRating: parseInt(rating),
+                    status: status,
+                    reviewDate: document.getElementById('reviewDate').value,
+                    comments: document.getElementById('reviewComments').value.trim(),
+                    developmentGoals: document.getElementById('developmentGoals').value.trim(),
+                    createdDate: this.currentReviewId ? this.data.performanceReviews[this.currentReviewId].createdDate : new Date().toISOString(),
+                    updatedDate: new Date().toISOString()
+                };
+                
+                // Show loading state
+                const saveBtn = document.getElementById('saveReviewBtn');
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                saveBtn.disabled = true;
+                
+                setTimeout(() => {
+                    this.data.performanceReviews[reviewData.id] = reviewData;
+                    this.saveData();
+                    this.showAlert(`Performance review ${this.currentReviewId ? 'updated' : 'created'} successfully!`, 'success');
+                    this.logActivity(`${this.currentUser.name} ${this.currentReviewId ? 'updated' : 'created'} performance review for ${employee.name}`);
+                    document.getElementById('reviewModal').classList.remove('active');
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+                    this.currentReviewId = null;
+                    this.loadReviewData();
+                }, 10);
+            },
+            
+            editReview(reviewId) {
+                this.openReviewModal(reviewId);
+            },
+            
+            deleteReview(reviewId) {
+                if (confirm('Are you sure you want to delete this performance review?')) {
+                    delete this.data.performanceReviews[reviewId];
+                    this.saveData();
+                    this.showAlert('Performance review deleted successfully!', 'success');
+                    this.logActivity(`${this.currentUser.name} deleted performance review ${reviewId}`);
+                    this.loadReviewData();
+                }
+            },
+            
+            // Leave Management
+            loadLeavesData() {
+                const leaveList = document.getElementById('leaveList');
+                const fragment = document.createDocumentFragment();
+                const leaves = Object.values(this.data.leaves || {});
+                
+                // Update statistics
+                const pending = leaves.filter(leave => leave.status === 'Pending').length;
+                const approved = leaves.filter(leave => leave.status === 'Approved').length;
+                const onLeave = leaves.filter(leave => 
+                    leave.status === 'Approved' && 
+                    new Date(leave.startDate) <= new Date() && 
+                    new Date(leave.endDate) >= new Date()
+                ).length;
+                
+                document.getElementById('pendingLeaves').textContent = pending;
+                document.getElementById('approvedLeaves').textContent = approved;
+                document.getElementById('onLeaveNow').textContent = onLeave;
+                
+                // Display leaves
+                if (leaves.length === 0) {
+                    const emptyDiv = document.createElement('div');
+                    emptyDiv.style.textAlign = 'center';
+                    emptyDiv.style.padding = '40px';
+                    emptyDiv.style.color = 'var(--gray)';
+                    emptyDiv.textContent = 'No leave applications found.';
+                    fragment.appendChild(emptyDiv);
+                } else {
+                    leaves.forEach(leave => {
+                        const statusClass = `leave-${leave.status.toLowerCase()}`;
+                        const card = document.createElement('div');
+                        card.className = 'leave-card';
+                        card.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h4>${leave.staffName} - ${leave.type}</h4>
+                                    <p><strong>Period:</strong> ${this.formatDate(leave.startDate)} to ${this.formatDate(leave.endDate)}</p>
+                                    <p><strong>Reason:</strong> ${leave.reason}</p>
+                                    <p><strong>Applied by:</strong> ${leave.appliedBy} on ${this.formatDate(leave.appliedDate)}</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="leave-status ${statusClass}">${leave.status}</span>
+                                    <div style="margin-top: 10px;">
+                                        ${leave.status === 'Pending' ? `
+                                            <button class="btn btn-success" onclick="HRSystem.updateLeaveStatus('${leave.id}', 'Approved')">
+                                                <i class="fas fa-check"></i> Approve
+                                            </button>
+                                            <button class="btn btn-danger" onclick="HRSystem.updateLeaveStatus('${leave.id}', 'Rejected')" style="margin-left: 5px;">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        fragment.appendChild(card);
+                    });
+                }
+                
+                leaveList.innerHTML = '';
+                leaveList.appendChild(fragment);
+            },
+            
+            openLeaveModal() {
+                const staffSelect = document.getElementById('leaveStaff');
+                staffSelect.innerHTML = '<option value="">Select Staff</option>';
+                Object.values(this.data.staff || {}).forEach(staff => {
+                    if (staff.status === 'Active') {
+                        const option = document.createElement('option');
+                        option.value = staff.id;
+                        option.textContent = `${staff.name} (${staff.id})`;
+                        staffSelect.appendChild(option);
+                    }
+                });
+                document.getElementById('leaveModal').classList.add('active');
+            },
+            
+            saveLeave() {
+                const staffId = document.getElementById('leaveStaff').value;
+                const leaveType = document.getElementById('leaveType').value;
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                const reason = document.getElementById('leaveReason').value.trim();
+                
+                if (!staffId || !leaveType || !startDate || !endDate || !reason) {
+                    this.showAlert('Please fill in all required fields', 'danger');
+                    return;
+                }
+                
+                if (new Date(startDate) > new Date(endDate)) {
+                    this.showAlert('End date must be after start date', 'danger');
+                    return;
+                }
+                
+                const staff = this.data.staff[staffId];
+                if (!staff) {
+                    this.showAlert('Selected staff member not found', 'danger');
+                    return;
+                }
+                
+                const leaveData = {
+                    id: 'leave_' + Date.now(),
+                    staffId: staffId,
+                    staffName: staff.name,
+                    type: leaveType,
+                    startDate: startDate,
+                    endDate: endDate,
+                    reason: reason,
+                    status: 'Pending',
+                    appliedDate: new Date().toISOString(),
+                    appliedBy: this.currentUser.name
+                };
+                
+                // Show loading state
+                const saveBtn = document.getElementById('saveLeaveBtn');
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+                saveBtn.disabled = true;
+                
+                // Use setTimeout for non-blocking operation
+                setTimeout(() => {
+                    this.data.leaves[leaveData.id] = leaveData;
+                    this.saveData();
+                    this.showAlert('Leave application submitted successfully!', 'success');
+                    this.logActivity(`${this.currentUser.name} applied for ${leaveType.toLowerCase()} for ${staff.name}`);
+                    document.getElementById('leaveModal').classList.remove('active');
+                    // Reset button and state
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+                    this.loadLeavesData();
+                }, 10);
+            },
+            
+            updateLeaveStatus(leaveId, status) {
+                if (this.data.leaves[leaveId]) {
+                    this.data.leaves[leaveId].status = status;
+                    this.saveData();
+                    this.showAlert(`Leave ${status.toLowerCase()} successfully!`, 'success');
+                    this.logActivity(`${this.currentUser.name} ${status.toLowerCase()} leave for ${this.data.leaves[leaveId].staffName}`);
+                    this.loadLeavesData();
+                }
+            },
+            
+            // Document Management
+            loadDocumentsData() {
+                const documentsTableBody = document.getElementById('documentsTableBody');
+                const fragment = document.createDocumentFragment();
+                const documents = Object.values(this.data.documents || {});
+                
+                if (documents.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="6" style="text-align: center; padding: 40px; color: var(--gray);">
+                            No documents found.
+                        </td>
+                    `;
+                    fragment.appendChild(row);
+                } else {
+                    documents.forEach(doc => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><i class="fas fa-file-pdf document-icon"></i> ${doc.name}</td>
+                            <td>${doc.staffName}</td>
+                            <td>${doc.type}</td>
+                            <td>${this.formatDate(doc.uploadDate)}</td>
+                            <td>${doc.size}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn edit-btn" onclick="HRSystem.downloadDocument('${doc.id}')">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn" onclick="HRSystem.deleteDocument('${doc.id}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        fragment.appendChild(row);
+                    });
+                }
+                
+                documentsTableBody.innerHTML = '';
+                documentsTableBody.appendChild(fragment);
+            },
+            
+            openDocumentModal() {
+                const staffSelect = document.getElementById('documentStaff');
+                staffSelect.innerHTML = '<option value="">Select Staff</option>';
+                Object.values(this.data.staff || {}).forEach(staff => {
+                    const option = document.createElement('option');
+                    option.value = staff.id;
+                    option.textContent = `${staff.name} (${staff.id})`;
+                    staffSelect.appendChild(option);
+                });
+                document.getElementById('documentModal').classList.add('active');
+            },
+            
+            saveDocument() {
+                const fileInput = document.getElementById('documentFile');
+                const staffId = document.getElementById('documentStaff').value;
+                const docType = document.getElementById('documentType').value;
+                const description = document.getElementById('documentDescription').value.trim();
+                
+                if (!fileInput.files[0] || !staffId || !docType) {
+                    this.showAlert('Please fill in all required fields', 'danger');
+                    return;
+                }
+                
+                const staff = this.data.staff[staffId];
+                if (!staff) {
+                    this.showAlert('Selected staff member not found', 'danger');
+                    return;
+                }
+                
+                const file = fileInput.files[0];
+                const documentData = {
+                    id: 'doc_' + Date.now(),
+                    name: file.name,
+                    staffId: staffId,
+                    staffName: staff.name,
+                    type: docType,
+                    description: description,
+                    uploadDate: new Date().toISOString(),
+                    size: this.formatFileSize(file.size),
+                    uploadedBy: this.currentUser.name
+                };
+                
+                // Show loading state
+                const saveBtn = document.getElementById('saveDocumentBtn');
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+                saveBtn.disabled = true;
+                
+                // Use setTimeout for non-blocking operation
+                setTimeout(() => {
+                    this.data.documents[documentData.id] = documentData;
+                    this.saveData();
+                    this.showAlert('Document uploaded successfully!', 'success');
+                    this.logActivity(`${this.currentUser.name} uploaded ${docType.toLowerCase()} for ${staff.name}`);
+                    document.getElementById('documentModal').classList.remove('active');
+                    document.getElementById('documentForm').reset();
+                    // Reset button and state
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+                    this.loadDocumentsData();
+                }, 10);
+            },
+            
+            downloadDocument(docId) {
+                const doc = this.data.documents[docId];
+                if (doc) {
+                    this.showAlert(`Downloading ${doc.name}...`, 'success');
+                    this.logActivity(`${this.currentUser.name} downloaded ${doc.name}`);
+                }
+            },
+            
+            deleteDocument(docId) {
+                if (confirm('Are you sure you want to delete this document?')) {
+                    const doc = this.data.documents[docId];
+                    delete this.data.documents[docId];
+                    this.saveData();
+                    this.showAlert('Document deleted successfully!', 'success');
+                    this.logActivity(`${this.currentUser.name} deleted document ${doc?.name || docId}`);
+                    this.loadDocumentsData();
+                }
+            },
+            
+            // Enhanced Search Functionality
+            searchStaff() {
+                const query = document.getElementById('searchInput').value.toLowerCase().trim();
+                if (!query) {
+                    this.showAlert('Please enter a search term', 'danger');
+                    return;
+                }
+                
+                const results = Object.values(this.data.staff || {}).filter(staff => 
+                    staff.name.toLowerCase().includes(query) || 
+                    staff.id.toLowerCase().includes(query) ||
+                    staff.department.toLowerCase().includes(query) ||
+                    staff.position.toLowerCase().includes(query) ||
+                    staff.email.toLowerCase().includes(query) ||
+                    (staff.phone && staff.phone.includes(query))
+                );
+                
+                if (results.length > 0) {
+                    this.displayAdvancedSearchResults(results, query);
+                } else {
+                    this.showAlert(`No staff members found matching "${query}"`, 'danger');
+                }
+            },
+            
+            displayAdvancedSearchResults(results, query) {
+                const modal = document.getElementById('searchResultsModal');
+                const container = document.getElementById('searchResultsContainer');
+                
+                // Calculate statistics
+                const activeCount = results.filter(staff => staff.status === 'Active').length;
+                const resignedCount = results.filter(staff => staff.status === 'Resigned').length;
+                const onLeaveCount = results.filter(staff => staff.status === 'On Leave').length;
+                
+                // Update statistics
+                document.getElementById('totalResults').textContent = results.length;
+                document.getElementById('activeResults').textContent = activeCount;
+                document.getElementById('resignedResults').textContent = resignedCount;
+                document.getElementById('onLeaveResults').textContent = onLeaveCount;
+                
+                // Display results
+                if (results.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-results">
+                            <i class="fas fa-search"></i>
+                            <h4>No employees found</h4>
+                            <p>No staff members match your search criteria.</p>
+                        </div>
+                    `;
+                } else {
+                    let html = '';
+                    results.forEach(staff => {
+                        const statusClass = staff.status === 'Active' ? 'status-active' : 
+                                          staff.status === 'On Leave' ? 'status-onleave' : 'status-resigned';
+                        html += `
+                            <div class="search-result-card" data-status="${staff.status.toLowerCase().replace(' ', '')}">
+                                <div class="search-result-header">
+                                    <div class="employee-basic-info">
+                                        <img src="${staff.photo || 'https://via.placeholder.com/60?text=No+Photo'}" 
+                                             class="employee-avatar" alt="${staff.name}">
+                                        <div class="employee-text-info">
+                                            <h4>${staff.name} <span class="status-badge ${statusClass}">${staff.status}</span></h4>
+                                            <p><strong>ID:</strong> ${staff.id} | <strong>Position:</strong> ${staff.position}</p>
+                                            <p><strong>Department:</strong> ${staff.department} | <strong>Email:</strong> ${staff.email}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="employee-details-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Phone:</span>
+                                        <span class="detail-value">${staff.phone}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Salary:</span>
+                                        <span class="detail-value">$${staff.salary?.toLocaleString() || '0'}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Employment Date:</span>
+                                        <span class="detail-value">${this.formatDate(staff.employmentDate)}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Address:</span>
+                                        <span class="detail-value">${staff.address}</span>
+                                    </div>
+                                    ${staff.status === 'Resigned' ? `
+                                    <div class="detail-item">
+                                        <span class="detail-label">Resign Date:</span>
+                                        <span class="detail-value">${this.formatDate(staff.resignDate)}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Resign Reason:</span>
+                                        <span class="detail-value">${staff.resignReason || 'Not specified'}</span>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                                <div class="search-actions">
+                                    <button class="btn btn-secondary" onclick="HRSystem.viewEmployeeDetails('${staff.id}')">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </button>
+                                    <button class="btn btn-primary" onclick="HRSystem.editStaff('${staff.id}')">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-danger" onclick="HRSystem.deleteStaff('${staff.id}')">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                }
+                
+                // Setup filter functionality
+                this.setupSearchFilters();
+                modal.classList.add('active');
+            },
+            
+            setupSearchFilters() {
+                const filterBtns = document.querySelectorAll('.filter-btn');
+                const resultCards = document.querySelectorAll('.search-result-card');
+                
+                filterBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        // Update active button
+                        filterBtns.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        
+                        const filter = btn.getAttribute('data-filter');
+                        
+                        // Filter results
+                        resultCards.forEach(card => {
+                            if (filter === 'all') {
+                                card.style.display = 'block';
+                            } else {
+                                const status = card.getAttribute('data-status');
+                                if (status === filter) {
+                                    card.style.display = 'block';
+                                } else {
+                                    card.style.display = 'none';
+                                }
+                            }
+                        });
+                    });
+                });
+            },
+            
+            viewEmployeeDetails(staffId) {
+                const staff = this.data.staff[staffId];
+                if (!staff) return;
+                
+                // Close search modal first
+                this.closeAllModals();
+                
+                // Open staff modal in view mode (read-only)
+                this.openStaffModal(staffId);
+                
+                // Make form read-only for viewing
+                const form = document.getElementById('staffForm');
+                const inputs = form.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    input.readOnly = true;
+                    input.disabled = true;
+                });
+                
+                // Change modal title and hide save button
+                document.getElementById('modalTitle').textContent = `Employee Details - ${staff.name}`;
+                document.getElementById('saveStaffBtn').style.display = 'none';
+                
+                // Add a close button
+                const modalFooter = document.querySelector('#staffModal .modal-footer');
+                if (!modalFooter.querySelector('.view-close-btn')) {
+                    const closeBtn = document.createElement('button');
+                    closeBtn.className = 'btn btn-secondary view-close-btn';
+                    closeBtn.innerHTML = '<i class="fas fa-times"></i> Close';
+                    closeBtn.onclick = () => {
+                        this.closeAllModals();
+                        // Re-enable form elements
+                        inputs.forEach(input => {
+                            input.readOnly = false;
+                            input.disabled = false;
+                        });
+                        document.getElementById('saveStaffBtn').style.display = 'block';
+                    };
+                    modalFooter.appendChild(closeBtn);
+                }
+            },
+            
+            // Export search results to Excel
+            exportSearchResults() {
+                const visibleCards = document.querySelectorAll('.search-result-card[style=""]');
+                const data = [];
+                visibleCards.forEach(card => {
+                    const name = card.querySelector('h4').textContent.split(' ')[0]; // Get name without status badge
+                    const id = card.querySelector('p').textContent.split('ID: ')[1].split(' |')[0];
+                    const position = card.querySelector('p').textContent.split('Position: ')[1].split(' |')[0];
+                    const department = card.querySelector('p').textContent.split('Department: ')[1].split(' |')[0];
+                    const email = card.querySelector('p').textContent.split('Email: ')[1];
+                    const phone = card.querySelector('.detail-item:nth-child(1) .detail-value').textContent;
+                    const salary = card.querySelector('.detail-item:nth-child(2) .detail-value').textContent;
+                    const employmentDate = card.querySelector('.detail-item:nth-child(3) .detail-value').textContent;
+                    data.push({
+                        'Staff ID': id,
+                        'Full Name': name,
+                        'Position': position,
+                        'Department': department,
+                        'Email': email,
+                        'Phone': phone,
+                        'Salary': salary,
+                        'Employment Date': employmentDate,
+                        'Status': card.getAttribute('data-status').charAt(0).toUpperCase() + card.getAttribute('data-status').slice(1)
+                    });
+                });
+                
+                if (data.length === 0) {
+                    this.showAlert('No results to export', 'warning');
+                    return;
+                }
+                
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Search Results');
+                XLSX.writeFile(wb, `employee_search_results_${new Date().toISOString().split('T')[0]}.xlsx`);
+                this.showAlert(`Exported ${data.length} employees to Excel`, 'success');
+                this.logActivity(`${this.currentUser.name} exported search results`);
+            },
+            
+            // Activity Log
+            loadActivityData() {
+                const activityFeed = document.getElementById('activityFeed');
+                const fragment = document.createDocumentFragment();
+                const activities = Object.values(this.data.activities || {}).sort((a, b) => 
+                    new Date(b.timestamp) - new Date(a.timestamp)
+                ).slice(0, 20);
+                
+                if (activities.length === 0) {
+                    const emptyDiv = document.createElement('div');
+                    emptyDiv.style.textAlign = 'center';
+                    emptyDiv.style.padding = '40px';
+                    emptyDiv.style.color = 'var(--gray)';
+                    emptyDiv.textContent = 'No activity recorded yet.';
+                    fragment.appendChild(emptyDiv);
+                } else {
+                    activities.forEach(activity => {
+                        const item = document.createElement('div');
+                        item.className = 'activity-item';
+                        item.innerHTML = `
+                            <span>${activity.message}</span>
+                            <small>${new Date(activity.timestamp).toLocaleString()}</small>
+                        `;
+                        fragment.appendChild(item);
+                    });
+                }
+                
+                activityFeed.innerHTML = '';
+                activityFeed.appendChild(fragment);
+            },
+            
+            // Dashboard
+            updateDashboard() {
+                const staffArray = Object.values(this.data.staff || {});
+                const activeStaff = staffArray.filter(staff => staff.status !== 'Resigned');
+                const total = staffArray.length;
+                const active = activeStaff.filter(s => s.status === 'Active').length;
+                
+                // Update staff statistics
+                document.getElementById('totalStaff').textContent = total;
+                
+                // Update leave statistics
+                const leaves = Object.values(this.data.leaves || {});
+                const pending = leaves.filter(leave => leave.status === 'Pending').length;
+                const approved = leaves.filter(leave => leave.status === 'Approved').length;
+                const onLeave = leaves.filter(leave => 
+                    leave.status === 'Approved' && 
+                    new Date(leave.startDate) <= new Date() && 
+                    new Date(leave.endDate) >= new Date()
+                ).length;
+                
+                document.getElementById('pendingLeaves').textContent = pending;
+                document.getElementById('approvedLeaves').textContent = approved;
+                document.getElementById('onLeaveNow').textContent = onLeave;
+                
+                // Update dashboard live updates
+                const liveUpdates = document.getElementById('liveUpdates');
+                liveUpdates.innerHTML = `
+                    <div class="activity-item">
+                        <span>System loaded with ${total} staff members and ${leaves.length} leave records</span>
+                        <small>${new Date().toLocaleTimeString()}</small>
+                    </div>
+                `;
+            },
+            
+            // Excel Report Generation
+            generateExcelReport(type) {
+                let data = [];
+                let filename = '';
+                let headers = [];
+                
+                switch(type) {
+                    case 'staff':
+                        data = Object.values(this.data.staff || {}).map(staff => ({
+                            'Staff ID': staff.id,
+                            'Full Name': staff.name,
+                            'Position': staff.position,
+                            'Department': staff.department,
+                            'Email': staff.email,
+                            'Phone': staff.phone,
+                            'Salary': staff.salary,
+                            'Status': staff.status,
+                            'Employment Date': this.formatDate(staff.employmentDate),
+                            'Address': staff.address
+                        }));
+                        filename = 'Staff_Directory_Report.xlsx';
+                        break;
+                    case 'leaves':
+                        data = Object.values(this.data.leaves || {}).map(leave => ({
+                            'Staff Name': leave.staffName,
+                            'Leave Type': leave.type,
+                            'Start Date': this.formatDate(leave.startDate),
+                            'End Date': this.formatDate(leave.endDate),
+                            'Reason': leave.reason,
+                            'Status': leave.status,
+                            'Applied By': leave.appliedBy,
+                            'Applied Date': this.formatDate(leave.appliedDate)
+                        }));
+                        filename = 'Leave_Report.xlsx';
+                        break;
+                    case 'recruitment':
+                        data = Object.values(this.data.requisitions || {}).map(req => ({
+                            'Job Title': req.title,
+                            'Department': req.department,
+                            'Status': req.status,
+                            'Priority': req.priority,
+                            'Openings': req.openings,
+                            'Description': req.description,
+                            'Requirements': req.requirements,
+                            'Hiring Manager': req.hiringManager ? (this.data.staff[req.hiringManager] || {}).name : 'N/A',
+                            'Created Date': this.formatDate(req.createdDate),
+                            'Updated Date': this.formatDate(req.updatedDate)
+                        }));
+                        filename = 'Recruitment_Report.xlsx';
+                        break;
+                    case 'performance':
+                        data = Object.values(this.data.performanceReviews || {}).map(review => ({
+                            'Employee': review.employeeName,
+                            'Period': this.formatMonthYear(review.period),
+                            'Type': review.type,
+                            'Reviewer': review.reviewerName,
+                            'Rating': review.overallRating,
+                            'Status': review.status,
+                            'Review Date': this.formatDate(review.reviewDate),
+                            'Comments': review.comments,
+                            'Development Goals': review.developmentGoals,
+                            'Created Date': this.formatDate(review.createdDate),
+                            'Updated Date': this.formatDate(review.updatedDate)
+                        }));
+                        filename = 'Performance_Report.xlsx';
+                        break;
+                    case 'all':
+                        // Generate multiple sheets
+                        const wb = XLSX.utils.book_new();
+                        
+                        // Staff sheet
+                        const staffData = Object.values(this.data.staff || {}).map(staff => ({
+                            'Staff ID': staff.id,
+                            'Full Name': staff.name,
+                            'Position': staff.position,
+                            'Department': staff.department,
+                            'Email': staff.email,
+                            'Phone': staff.phone,
+                            'Salary': staff.salary,
+                            'Status': staff.status,
+                            'Employment Date': this.formatDate(staff.employmentDate),
+                            'Address': staff.address
+                        }));
+                        if (staffData.length > 0) {
+                            const staffWS = XLSX.utils.json_to_sheet(staffData);
+                            XLSX.utils.book_append_sheet(wb, staffWS, 'Staff Directory');
+                        }
+                        
+                        // Leave sheet
+                        const leaveData = Object.values(this.data.leaves || {}).map(leave => ({
+                            'Staff Name': leave.staffName,
+                            'Leave Type': leave.type,
+                            'Start Date': this.formatDate(leave.startDate),
+                            'End Date': this.formatDate(leave.endDate),
+                            'Reason': leave.reason,
+                            'Status': leave.status,
+                            'Applied By': leave.appliedBy,
+                            'Applied Date': this.formatDate(leave.appliedDate)
+                        }));
+                        if (leaveData.length > 0) {
+                            const leaveWS = XLSX.utils.json_to_sheet(leaveData);
+                            XLSX.utils.book_append_sheet(wb, leaveWS, 'Leave Records');
+                        }
+                        
+                        // Recruitment sheet
+                        const reqData = Object.values(this.data.requisitions || {}).map(req => ({
+                            'Job Title': req.title,
+                            'Department': req.department,
+                            'Status': req.status,
+                            'Priority': req.priority,
+                            'Openings': req.openings,
+                            'Description': req.description,
+                            'Requirements': req.requirements,
+                            'Hiring Manager': req.hiringManager ? (this.data.staff[req.hiringManager] || {}).name : 'N/A',
+                            'Created Date': this.formatDate(req.createdDate),
+                            'Updated Date': this.formatDate(req.updatedDate)
+                        }));
+                        if (reqData.length > 0) {
+                            const reqWS = XLSX.utils.json_to_sheet(reqData);
+                            XLSX.utils.book_append_sheet(wb, reqWS, 'Recruitment');
+                        }
+                        
+                        // Performance sheet
+                        const perfData = Object.values(this.data.performanceReviews || {}).map(review => ({
+                            'Employee': review.employeeName,
+                            'Period': this.formatMonthYear(review.period),
+                            'Type': review.type,
+                            'Reviewer': review.reviewerName,
+                            'Rating': review.overallRating,
+                            'Status': review.status,
+                            'Review Date': this.formatDate(review.reviewDate),
+                            'Comments': review.comments,
+                            'Development Goals': review.developmentGoals,
+                            'Created Date': this.formatDate(review.createdDate),
+                            'Updated Date': this.formatDate(review.updatedDate)
+                        }));
+                        if (perfData.length > 0) {
+                            const perfWS = XLSX.utils.json_to_sheet(perfData);
+                            XLSX.utils.book_append_sheet(wb, perfWS, 'Performance Reviews');
+                        }
+                        
+                        XLSX.writeFile(wb, 'HR_System_Complete_Report.xlsx');
+                        this.showAlert('Complete report generated successfully!', 'success');
+                        this.logActivity(`${this.currentUser.name} generated complete HR report`);
+                        return;
+                }
+                
+                if (data.length === 0) {
+                    this.showAlert('No data available for the selected report', 'warning');
+                    return;
+                }
+                
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Report');
+                XLSX.writeFile(wb, filename);
+                this.showAlert(`${type.replace(/\b\w/g, l => l.toUpperCase())} report generated successfully!`, 'success');
+                this.logActivity(`${this.currentUser.name} generated ${type} report`);
+            },
+            
+            // Data export/import
+            exportAllData() {
+                const dataStr = JSON.stringify(this.data, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'hr_system_backup.json';
+                link.click();
+                URL.revokeObjectURL(url);
+                this.showAlert('All data exported successfully!', 'success');
+                this.logActivity(`${this.currentUser.name} exported all system data`);
+            },
+            
+            importData() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const importedData = JSON.parse(event.target.result);
+                            this.data = {...this.data, ...importedData};
+                            this.saveData();
+                            this.refreshAllData();
+                            this.showAlert('Data imported successfully!', 'success');
+                            this.logActivity(`${this.currentUser.name} imported system data`);
+                        } catch (error) {
+                            this.showAlert('Error importing data. Invalid file format.', 'danger');
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
+            },
+            
+            resetSystem() {
+                if (confirm('Are you sure you want to reset all system data? This action cannot be undone.')) {
+                    this.data = {
+                        staff: {},
+                        activities: {},
+                        leaves: {},
+                        documents: {},
+                        requisitions: {},
+                        performanceReviews: {},
+                        onlineUsers: {},
+                        systemConfig: {
+                            password: "SAS2024!",
+                            username: "stanfordhr"
+                        },
+                        lastUpdate: Date.now()
+                    };
+                    this.saveData();
+                    this.refreshAllData();
+                    this.showAlert('System data reset successfully!', 'success');
+                    this.logActivity(`${this.currentUser.name} reset system data`);
+                }
+            },
+            
+            // Utility functions
+            handlePhotoUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        document.getElementById('photoPreview').src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            },
+            
+            clearActivityLog() {
+                if (confirm('Are you sure you want to clear all activity logs?')) {
+                    this.data.activities = {};
+                    this.saveData();
+                    this.showAlert('Activity log cleared successfully!', 'success');
+                    this.logActivity(`${this.currentUser.name} cleared the activity log`);
+                    this.loadActivityData();
+                }
+            },
+            
+            showAlert(message, type) {
+                // Create alert if it doesn't exist
+                let alert = document.getElementById('globalAlert');
+                if (!alert) {
+                    alert = document.createElement('div');
+                    alert.id = 'globalAlert';
+                    alert.style.position = 'fixed';
+                    alert.style.top = '20px';
+                    alert.style.right = '20px';
+                    alert.style.zIndex = '10000';
+                    alert.style.minWidth = '300px';
+                    document.body.appendChild(alert);
+                }
+                alert.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+                alert.style.display = 'block';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 5000);
+            },
+            
+            logActivity(message) {
+                const activityId = 'activity_' + Date.now();
+                this.data.activities[activityId] = {
+                    message: message,
+                    user: this.currentUser.name,
+                    timestamp: new Date().toISOString()
+                };
+                this.saveData();
+                this.loadActivityData();
+            },
+            
+            formatDate(dateString) {
+                if (!dateString) return 'N/A';
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US');
+            },
+            
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            },
+            
+            formatMonthYear(periodString) {
+                if (!periodString) return 'N/A';
+                // Format: YYYY-MM (from HTML month input)
+                const [year, month] = periodString.split('-');
+                const date = new Date(year, month - 1);
+                return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+            }
+        };
+        
+        // Make functions global
+        window.HRSystem = HRSystem;
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            HRSystem.init();
+        });
+        
+        // Global functions for event handlers
+        window.editStaff = function(id) {
+            HRSystem.editStaff(id);
+        };
+        
+        window.deleteStaff = function(id) {
+            HRSystem.deleteStaff(id);
+        };
+        
+        window.editRequisition = function(id) {
+            HRSystem.editRequisition(id);
+        };
+        
+        window.deleteRequisition = function(id) {
+            HRSystem.deleteRequisition(id);
+        };
+        
+        window.editReview = function(id) {
+            HRSystem.editReview(id);
+        };
+        
+        window.deleteReview = function(id) {
+            HRSystem.deleteReview(id);
+        };
+        
+        window.updateLeaveStatus = function(leaveId, status) {
+            HRSystem.updateLeaveStatus(leaveId, status);
+        };
+        
+        window.viewEmployeeDetails = function(staffId) {
+            HRSystem.viewEmployeeDetails(staffId);
+        };
+    </script>
+</body>
+</html>
